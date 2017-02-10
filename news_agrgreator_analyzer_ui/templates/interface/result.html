@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block container %}
+{% load paginator %}
+    <form>
+        <table align="center">
+            <tr>
+                <td><input type="text" name="txtsearch" placeholder="Search here"
+                           style="width:500px; height:35px"></td>
+                <td><input type="submit" value="Search" style="height:35px"></td>
+            </tr>
+        </table>
+    </form>
+{% endblock %}
