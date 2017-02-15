@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block container %}
+{% load bootstrap3 %}
+{% load paginator %}
+
+<form method="GET" action="">
+    {% bootstrap_form form layout='inline' %}
+    {% buttons submit='Search' layout='inline'%}{% endbuttons %}
+</form><br/><br/>
+{% if sphinx_details %}
+{% for sphinx_detail in sphinx_details %}
+<hr>
+<div style="text-align:left;">
+    <ul type="None">
+        <li><a href="{% url 'search:get_detailed_view' sphinx_detail.0 %}">
+            {{sphinx_detail.1}}</a></li>
+        <li> {{sphinx_detail.3}} | {{sphinx_detail.4}} | {{sphinx_detail.2}} | {{sphinx_detail.6}}</li>
+        <li>{{sphinx_detail.5|slice:"0:10"}}</li>
+    </ul>
+</div>
+
+{% endfor %}
+{% else %}
+<p>No records</p>
+{% endif %}
+{% endblock %}
