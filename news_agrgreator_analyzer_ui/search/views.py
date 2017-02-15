@@ -33,7 +33,7 @@ class Connector(object):
 class SphinxRecord(object):
 
     def __init__(self):
-        self.sphinx_connector = Connector(host="127.0.0.1", port=9306, options={})
+        self.sphinx_connector = Connector(host="127.0.0.1", port=9316, options={})
 
     def get_sphinx_record(self, query, args=None):
         sphinx_con = self.sphinx_connector.get_connection()
@@ -112,8 +112,19 @@ def get_search(request):
         search = request.GET.get('search')
         final_query = obj_query.get_final_query(search)
         sphinx_details = obj_search.get_sphinx_record(final_query)
+        page = request.GET.get('page', 1)
+
+        paginator = Paginator(sphinx_details, 4)
+        try:
+            sphinx_details = paginator.page(page)
+        except PageNotAnInteger:
+            sphinx_details = paginator.page(1)
+        except EmptyPage:
+            sphinx_details = paginator.page(paginator.num_pages)
+
         return render(request, template_name, {'form': form, 'sphinx_details': sphinx_details})
     else:
         final_query = "select * from newsdb order by published_date desc limit 5"
         sphinx_details = obj_search.get_sphinx_record(final_query)
-        return render(request, 'search/form.html', {'form': form, 'sphinx_details': sphinx_details})
+
+        return render(request, template_name, {'form': form, 'sphinx_details': sphinx_details})

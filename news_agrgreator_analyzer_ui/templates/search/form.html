@@ -23,4 +23,25 @@
 {% else %}
 <p>No records</p>
 {% endif %}
+{% if sphinx_details.has_other_pages %}
+  <ul class="pagination">
+    {% if sphinx_details.has_previous %}
+      <li><a href="?page={{ sphinx_details.previous_page_number }}">&laquo;</a></li>
+    {% else %}
+      <li class="disabled"><span>&laquo;</span></li>
+    {% endif %}
+    {% for i in sphinx_details.paginator.page_range %}
+      {% if users.number == i %}
+        <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+      {% else %}
+        <li><a href="?page={{ i }}">{{ i }}</a></li>
+      {% endif %}
+    {% endfor %}
+    {% if sphinx_details.has_next %}
+      <li><a href="?page={{ sphinx_details.next_page_number }}">&raquo;</a></li>
+    {% else %}
+      <li class="disabled"><span>&raquo;</span></li>
+    {% endif %}
+  </ul>
+{% endif %}
 {% endblock %}
