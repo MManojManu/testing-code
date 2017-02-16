@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block container %}
+{% load bootstrap3 %}
+{% load paginator %}
+<script>
+$(document).ready(function() {
+  $.ajaxSetup({ cache: false });
+  var my_refresh = setInterval(function() {
+    $('#output_box').load('/get_search/', function( response, status, xhr ) {
+      if ( xhr.status == 404) {
+        clearInterval(my_refresh);
+        var msg = "End of testing.";
+        $( "#output_box" ).html( msg);
+      }else if ( status == "error") {
+        clearInterval(my_refresh);
+        var msg = "Sorry but there was an error: [";
+        $( "#error" ).html( msg + xhr.status + "] " + xhr.statusText );
+      }
+    });
+  }, 1000); // the "1000"
+  $('#id_search').on('submit', function (e) {
+    e.preventDefault();
+    var my_refresh = start_refreshing_output_box(interval)
+   });
+});
+</script>
+<form method="GET" action="">
+    {% bootstrap_form form layout='inline' %}
+    {% buttons submit='Search' layout='inline'%}{% endbuttons %}
+</form><br/><br/>
+{% if sphinx_details %}
+{% for sphinx_detail in sphinx_details %}
+<hr>
+<div style="text-align:left;">
+    <ul type="None">
+        <li><a href="{% url 'search:get_detailed_view' sphinx_detail.0 %}">
+            {{sphinx_detail.1}}</a></li>
+        <li> {{sphinx_detail.3}} | {{sphinx_detail.4}} | {{sphinx_detail.2}} | {{sphinx_detail.6}}</li>
+        <li>{{sphinx_detail.5|slice:"0:10"}}</li>
+    </ul>
+</div>
+
+{% endfor %}
+{% else %}
+<p>No records</p>
+{% endif %}
+
+<div id="output_box">
+{% if sphinx_details.has_other_pages %}
+  <ul class="pagination">
+    {% if sphinx_details.has_previous %}
+      <li><a href="?page={{ sphinx_details.previous_page_number }}&{%if parameters %}search={{parameters}}{% endif %}">&laquo;</a></li>
+    {% else %}
+      <li class="disabled"><span>&laquo;</span></li>
+    {% endif %}
+    {% for i in sphinx_details.paginator.page_range %}
+      {% if sphinx_details.number == i %}
+        <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+      {% else %}
+        <li><a href="?page={{ i }}&{%if parameters %}search={{parameters}}{% endif %}">{{ i }}</a></li>
+      {% endif %}
+    {% endfor %}
+    {% if sphinx_details.has_next %}
+      <li><a href="?page={{ sphinx_details.next_page_number }}&{%if parameters %}search={{parameters}}{% endif %}">&raquo;</a></li>
+    {% else %}
+      <li class="disabled"><span>&raquo;</span></li>
+    {% endif %}
+  </ul>
+{% endif %}
+</div>
+{% endblock %}
