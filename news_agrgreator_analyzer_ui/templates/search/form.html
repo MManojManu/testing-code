@@ -13,11 +13,11 @@
 </form>
 
 <div class="clearfix"></div>
-
+{% with "Search results found :" as search %}
 <div class="col-sm-10 news-details search-result">
-    Search results found : {{meta.1.1}}
+     {% ifnotequal sphinx_detail.4 ''%} {{search}}{{meta.1.1}} {% endifnotequal %}
 </div>
-
+{% endwith %}
 <div class="col-sm-0 news-details search-result">
     Time Taken : {{meta.2.1}}
 </div>
