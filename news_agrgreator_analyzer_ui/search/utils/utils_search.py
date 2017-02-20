@@ -8,51 +8,69 @@ class SphinxconnectorCreator(object):
         self.sphinx_connector = Connector(host="127.0.0.1", port=9306, options={})
 
 
-class QueryConstructor(object):
+class SphinxResult(object):
 
-    def __init__(self):
-        self.query = "SELECT {fields} FROM {index} {cond} {options}"
-        self.con_query = " WHERE {where_con} "
-        self.index = None
-        self.query_list = None
-        self.__get_construct_query = None
-        self.__get_result_query = None
+    def __init__(self, index):
+        self.__main_query_template = "SELECT {fields} {snippet} FROM {index} {cond} {options}"
+        self.__cond_query_template = " WHERE {where_con} "
+        self.__snippet_template = ", SNIPPET({field}, {key_word}, {limit}) as {field}_snippet"
+        self.__index = index
+        self.__field_list = None
+        self.__construct_query = None
+        self.__options = None
 
-    def set_index(self, index_name):
-        self.index = index_name
+    def set_field_list(self, field_list):
+        self.__field_list = field_list
 
-    def set_query_list(self, query_list):
-        self.query_list = query_list
+    def get_snippet(self, field, key_word, limit):
+        t = "'%s'" % key_word
+        limit = "'LIMIT =%s'" % limit
+        self.__snippet_template = self.__snippet_template.format(field=field, key_word=t, limit=limit)
+        return self
 
-    def get_construct_query(self, search):
+    def get_exact_query(self, search):
+        pk = int(search)
+        where_con = "id = %s" % pk
+        self.__cond_query_template = self.__cond_query_template.format(where_con=where_con)
+        self.__snippet_template = ""
+        return self
 
-        try:
-            pk = int(search)
-            where_con = "id = %s" % pk
-            self.__get_construct_query = self.con_query.format(where_con=where_con)
-        except ValueError:
-            where_con = "MATCH('%s')" % search
-            self.query_list = self.query_list + ", SNIPPET(content, '%s' ," % search + "'limit=250')"
-            self.query_list = self.query_list + ", SNIPPET(article_title, '%s' ," % search + "'limit=100')"
-            self.__get_construct_query = self.con_query.format(where_con=where_con)
+    def get_match_query(self, search):
+        where_con = "MATCH('%s')" % search
+        self.__cond_query_template = self.__cond_query_template.format(where_con=where_con)
+        return self
 
-    def get_result(self, options):
-        option = "ORDER BY weight() DESC "
-        options = option + options
-        options += ";SHOW meta;"
-        print ("The index", self.index)
-        print ("The fil", self.query_list)
-        print ("The query", self.__get_construct_query)
-        self.__get_result_query = self.query.format(fields=self.query_list,
-                                                    index=self.index, cond=self.__get_construct_query,
-                                                    options=options)
+    def set_options(self, options):
+        self.__options = options
 
-    def execute(self):
+    def get_final_query(self):
+
+        print ("The index", self.__index)
+        print ("The fil", self.__field_list)
+        print ("The options", self.__options)
+        print ("The query", self.__cond_query_template)
+        print ("The snippett", self.__snippet_template)
+        self.__main_query_template = self.__main_query_template.format(fields=self.__field_list,
+                                                                       snippet=self.__snippet_template,
+                                          index=self.__index, cond=self.__cond_query_template,
+                                          options=self.__options)+";show meta;"
+        return self.__main_query_template
+
+    def execute(self, is_ex_match=False, has_meta=True):
+
         obj_sphinx_connector = SphinxconnectorCreator()
         sphinx_con = obj_sphinx_connector.sphinx_connector.get_connection()
         sphinx_cursor = sphinx_con.cursor()
-        print ("The resultant", self.__get_result_query)
-        sphinx_cursor.execute(self.__get_result_query)
-        sphinx_details = sphinx_cursor.fetchall()
+        print ("The resultant", self.__main_query_template)
+        result_dict = {}
+        sphinx_cursor.execute(self.__main_query_template)
+        result_dict['result'] = sphinx_cursor.fetchall()
+        if has_meta:
+            meta_details = ""
+            sphinx_cursor.nextset()
+            result_dict['meta'] = sphinx_cursor.fetchall()
+            print("The meta Details", result_dict['meta'])
+
         obj_sphinx_connector.sphinx_connector.put_connection(sphinx_con)
-        return sphinx_details
+        return result_dict
+
