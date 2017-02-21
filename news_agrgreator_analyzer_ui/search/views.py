@@ -1,4 +1,5 @@
 from utils.utils_search import SphinxResult
+from utils.facets import FacetConnectorCreator
 from django.shortcuts import render
 from .forms import SearchForm
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -14,13 +15,14 @@ def detailed_view(request, pk):
     obj_sphinx_result = SphinxResult("newsdb")
     form = SearchForm
     template_name = 'search/view.html'
-    obj_sphinx_result.set_field_list("*")
+    obj_sphinx_result.set_field_list(["*", ])
     obj_sphinx_result.get_exact_query(pk)
     content = ""
     search = ""
-    obj_sphinx_result.get_snippet(content, search, 100)
+
+    obj_sphinx_result.set_query_string(search)
+    obj_sphinx_result.set_snippet_field_list([content])
     obj_sphinx_result.set_options("", limit="", order="")
-    obj_sphinx_result.get_final_query()
     result_dict = obj_sphinx_result.execute(True, False)
     sphinx_details = result_dict['result']
     return render(request, template_name, {'form': form, 'sphinx_details': sphinx_details})
@@ -31,22 +33,22 @@ def get_search(request):
     obj_sphinx_result = SphinxResult("newsdb")
     form = SearchForm(request.GET)
     search = request.GET.get('search')
-    obj_sphinx_result.set_field_list("*")
+    obj_sphinx_result.set_field_list(["*"])
 
     if search:
         search = normalize_keyword(search)
-        obj_sphinx_result.get_snippet("content", search, 100)
-        obj_sphinx_result.get_match_query(search)
-        obj_sphinx_result.set_options("WEIGHT()", limit=20, order="DESC")
-        print (search)
-        obj_sphinx_result.get_final_query()
-        result_dict = obj_sphinx_result.execute(False)
+        obj_sphinx_result.set_query_string(search)
+        obj_sphinx_result.set_snippet_field_list(["content", "article_title", "resolved_news_type_name",
+                                                  "resolved_location_name", "source_name", "author_name",
+                                                  "published_date"])
+        obj_sphinx_result.set_options("WEIGHT()", limit=40, order="DESC")
 
+        result_dict = obj_sphinx_result.execute(False, True)
         sphinx_details = result_dict['result']
         page = request.GET.get('page', 1)
 
         meta = result_dict['meta']
-        paginator = Paginator(sphinx_details, 5)
+        paginator = Paginator(sphinx_details, 10)
         try:
             sphinx_details = paginator.page(page)
         except PageNotAnInteger:
@@ -54,15 +56,21 @@ def get_search(request):
         except EmptyPage:
             sphinx_details = paginator.page(paginator.num_pages)
 
+        face_dict = obj_sphinx_result.get_facet_record()
         return render(request, template_name,
-                      {'form': form, 'sphinx_details': sphinx_details, 'meta': meta, 'parameters': search})
+                      {'form': form, 'sphinx_details': sphinx_details, 'meta': meta, 'parameters': search,
+                       'face_dict': face_dict})
     else:
         search = ""
-        obj_sphinx_result.get_snippet("content", search, 100)
-        obj_sphinx_result.get_match_query(search)
+        obj_sphinx_result.set_query_string(search)
+        obj_sphinx_result.set_snippet_field_list(["content", "article_title", "resolved_news_type_name",
+                                                  "resolved_location_name", "source_name", "author_name",
+                                                  "published_date", ])
         obj_sphinx_result.set_options("published_date", limit=10, order="DESC")
-        obj_sphinx_result.get_final_query()
         result_dict = obj_sphinx_result.execute(False, False)
         sphinx_details = result_dict['result']
+        face_dict = obj_sphinx_result.get_facet_record()
+        return render(request, template_name, {'form': form, 'sphinx_details': sphinx_details,
+                                               'face_dict': face_dict})
 
-        return render(request, template_name, {'form': form, 'sphinx_details': sphinx_details})
+

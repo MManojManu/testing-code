@@ -55,9 +55,16 @@
     .search-result {
         text-transform: capitalize;
         font-family: Monotype Corsiva;
+    }
+    .search-result-found {
         font-weight: bold;
     }
-
+    .pagination {
+        display: inline-block;
+        padding-left: 350px;
+        margin: 20px 0;
+        border-radius: 4px;
+    }
     </style>
 </head>
 
@@ -72,6 +79,7 @@
             </div>
         </div>
     </nav>
+
     <div class="container-fluid">
         <div class="starter-template">
             {% block container %} test {% endblock %}

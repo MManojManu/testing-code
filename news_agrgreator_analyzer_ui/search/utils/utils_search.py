@@ -1,8 +1,9 @@
 from __future__ import print_function
 from utils_sphinx_connector import Connector
+from facets import FacetConnectorCreator
 
 
-class SphinxconnectorCreator(object):
+class SphinxConnectorCreator(object):
 
     def __init__(self):
         self.sphinx_connector = Connector(host="127.0.0.1", port=9306, options={})
@@ -11,41 +12,49 @@ class SphinxconnectorCreator(object):
 class SphinxResult(object):
 
     def __init__(self, index):
-        self.__main_query_template = "SELECT {fields} {snippet} FROM {index} {cond} {options}"
+        self.__main_query_template = "SELECT {fields} FROM {index} {cond} {options}"
         self.__cond_query_template = " WHERE {where_con} "
-        self.__snippet_template = ", SNIPPET({field}, {key_word}, {limit}) as {field}_snippet"
+        self.__snippet_template = "SNIPPET({field}, '{key_word}', 'LIMIT={limit}') as {field}_snippet"
         self.__index = index
-        self.__field_list = None
+        self.__search_query = None
+        self.__field_list = []
+        self.__snippet_field_list = []
         self.__construct_query = None
         self.__options = None
-        self.__count = 0
+
+    def set_query_string(self, key_word):
+        self.__search_query = key_word
 
     def set_field_list(self, field_list):
-        self.__field_list = field_list
+        assert isinstance(field_list, list)
+        self.__field_list.extend(field_list)
 
-    def get_snippet(self, field, key_word, limit):
-        keyword = "'%s'" % key_word
+    def set_snippet_field_list(self, snippet_list):
+        assert isinstance(snippet_list, list)
+        self.__snippet_field_list.extend(snippet_list)
+        print (self.__snippet_field_list)
 
-        limit = "'LIMIT =%s'" % limit
-
-        if self.__count == 0:
-            self.__snippet_template = self.__snippet_template.format(field=field, key_word=keyword, limit=limit)
-            self.__count += 1
-        else:
-            self.__snippet_template += self.__snippet_template.format(field=field, key_word=keyword, limit=limit)
-
-        print (self.__count)
-        return self
+    def __get_snippet_query_list(self, limit=200):
+        if self.__search_query is None:
+            raise NotImplementedError("Query should not be empty. "
+                                      "call set_query_string to set search keyword first.")
+        snippet_query_list = []
+        for field in self.__snippet_field_list:
+            s = self.__snippet_template.format(field=field, key_word=self.__search_query, limit=limit)
+            snippet_query_list.append(s)
+        return snippet_query_list
 
     def get_exact_query(self, search):
         pk = int(search)
         where_con = "id = %s" % pk
         self.__cond_query_template = self.__cond_query_template.format(where_con=where_con)
         self.__snippet_template = ""
-        return self
 
-    def get_match_query(self, search):
-        where_con = "MATCH('%s')" % search
+    def __get_match_query(self):
+        if self.__search_query is None:
+            raise NotImplementedError("Query should not be empty. "
+                                      "call set_query_string to set search keyword first.")
+        where_con = "MATCH('%s')" % self.__search_query
         self.__cond_query_template = self.__cond_query_template.format(where_con=where_con)
         return self
 
@@ -60,35 +69,55 @@ class SphinxResult(object):
             order = ""
         self.__options = order + limit
 
-    def get_final_query(self):
+    def __get_final_query(self, is_ex_match, has_meta):
 
-        print ("The index", self.__index)
-        print ("The fil", self.__field_list)
-        print ("The options", self.__options)
-        print ("The query", self.__cond_query_template)
-        print ("The snippett", self.__snippet_template)
-        self.__main_query_template = self.__main_query_template.format(fields=self.__field_list,
-                                                                       snippet=self.__snippet_template,
-                                          index=self.__index, cond=self.__cond_query_template,
-                                          options=self.__options)+";show meta;"
-        return self.__main_query_template
+        print ("The index    ", self.__index)
+        print ("The query    ", self.__cond_query_template)
+        print ("The snippett ", self.__snippet_template)
+        print("The options   ", self.__options)
+
+        field = "".join(self.__field_list)
+        if self.__snippet_field_list:
+            snippet = ", ".join(self.__get_snippet_query_list())
+            fields = "{fields}, {snippet}".format(fields=field, snippet=snippet)
+        if is_ex_match:
+            fields = "{fields} {snippet}".format(fields=field, snippet="")
+
+        print ("The Fields  ", fields)
+
+        query = self.__main_query_template.format(fields=fields, index=self.__index,
+                                                  cond=self.__cond_query_template, options=self.__options)
+        if has_meta:
+            query += "; SHOW META;"
+        return query
 
     def execute(self, is_ex_match=False, has_meta=True):
 
-        obj_sphinx_connector = SphinxconnectorCreator()
+        obj_sphinx_connector = SphinxConnectorCreator()
         sphinx_con = obj_sphinx_connector.sphinx_connector.get_connection()
         sphinx_cursor = sphinx_con.cursor()
-        print ("The resultant", self.__main_query_template)
+        self.__get_match_query()
         result_dict = {}
-        sphinx_cursor.execute(self.__main_query_template)
+        query = self.__get_final_query(is_ex_match, has_meta)
+        print(query)
+        sphinx_cursor.execute(query)
         result_dict['result'] = sphinx_cursor.fetchall()
         print ("The value", has_meta)
         if has_meta:
-            meta_details = ""
             sphinx_cursor.nextset()
             result_dict['meta'] = sphinx_cursor.fetchall()
             print("The meta Details", result_dict['meta'])
 
         obj_sphinx_connector.sphinx_connector.put_connection(sphinx_con)
         return result_dict
+
+    def get_facet_record(self):
+        q = FacetConnectorCreator()
+        final_query = "SELECT id FROM newsdb LIMIT 0,10 FACET resolved_location_name;"
+        result = q.execute_facet(final_query)
+
+        return result
+
+
+
 

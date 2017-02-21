@@ -15,6 +15,9 @@
         font-size: 16px;
         text-align: justify
     }
+    .btn-back-align {
+        text-align: left
+    }
 </style>
 {% with "|" as sp_seperator %}
 {% if sphinx_details %}
@@ -32,5 +35,8 @@
 <p><b>No records<b></b></p>
 {% endif %}
 {% endwith %}
+<div class="btn-back-align">
+    <a href="{% url 'search:get_search' %}" class="btn btn-success ">Back</a>
+</div>
 {% endblock %}
 
