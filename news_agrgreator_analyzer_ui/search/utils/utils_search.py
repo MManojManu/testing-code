@@ -18,14 +18,23 @@ class SphinxResult(object):
         self.__field_list = None
         self.__construct_query = None
         self.__options = None
+        self.__count = 0
 
     def set_field_list(self, field_list):
         self.__field_list = field_list
 
     def get_snippet(self, field, key_word, limit):
-        t = "'%s'" % key_word
+        keyword = "'%s'" % key_word
+
         limit = "'LIMIT =%s'" % limit
-        self.__snippet_template = self.__snippet_template.format(field=field, key_word=t, limit=limit)
+
+        if self.__count == 0:
+            self.__snippet_template = self.__snippet_template.format(field=field, key_word=keyword, limit=limit)
+            self.__count += 1
+        else:
+            self.__snippet_template += self.__snippet_template.format(field=field, key_word=keyword, limit=limit)
+
+        print (self.__count)
         return self
 
     def get_exact_query(self, search):
@@ -40,8 +49,16 @@ class SphinxResult(object):
         self.__cond_query_template = self.__cond_query_template.format(where_con=where_con)
         return self
 
-    def set_options(self, options):
-        self.__options = options
+    def set_options(self, field, **options):
+        if options['limit']:
+            limit = "LIMIT %s" % options['limit']
+        else:
+            limit = ""
+        if options['order']:
+            order = "ORDER BY %s " % field + " %s " % options['order']
+        else:
+            order = ""
+        self.__options = order + limit
 
     def get_final_query(self):
 
@@ -65,6 +82,7 @@ class SphinxResult(object):
         result_dict = {}
         sphinx_cursor.execute(self.__main_query_template)
         result_dict['result'] = sphinx_cursor.fetchall()
+        print ("The value", has_meta)
         if has_meta:
             meta_details = ""
             sphinx_cursor.nextset()
