@@ -3,32 +3,16 @@
 {% load bootstrap3 %}
 {% load base_filter %}
 
-<style>
-    .div-style-title {
-        text-transform: capitalize;
-        font-weight: bold;
-        font-size: 18px;
-
-    }
-    .div-body {
-        font-family: 'times new roman';
-        font-size: 16px;
-        text-align: justify
-    }
-    .btn-back-align {
-        text-align: left
-    }
-</style>
 {% with "|" as sp_seperator %}
 {% if sphinx_details %}
 {% for details in sphinx_details %}
 <div class="div-body">
     <p class="div-style-title">{{details.1}}</p>
-    <p style="color:blue;">{% ifnotequal details.3 'Unknown'%}{{details.3}} {{sp_seperator}} {% endifnotequal %}
-         {% ifnotequal details.4 'Unknown'%} {{details.4}} {{sp_seperator}} {% endifnotequal %}
-         {% ifnotequal details.7 'NA'%} {{details.7}} {{sp_seperator}} {% endifnotequal %}
-        {{details.2}} | {{details.6}}</p>
-    <p>{{details.5}}</p>
+    <p>{% ifnotequal details.2 'Unknown'%}{{details.2}} {{sp_seperator}} {% endifnotequal %}
+         {% ifnotequal details.3 'Unknown'%} {{details.3}} {{sp_seperator}} {% endifnotequal %}
+         {% ifnotequal details.4 'NA'%} {{details.4}} {{sp_seperator}} {% endifnotequal %}
+        {{details.5}} | {{details.6}}</p>
+    <p>{{details.7}}</p>
 </div>
 {% endfor %}
 {% else %}

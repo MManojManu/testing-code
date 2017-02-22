@@ -5,16 +5,18 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import re
 
 
-def normalize_keyword(input):
+def __normalize_keyword(keyword):
 
-    return " ".join(re.findall("[a-zA-Z]+", input))
+    return " ".join(re.findall("[a-zA-Z]+", keyword))
 
 
 def detailed_view(request, pk):
     obj_sphinx_result = SphinxResult("newsdb")
     form = SearchForm
     template_name = 'search/view.html'
-    obj_sphinx_result.set_field_list(["*", ])
+    obj_sphinx_result.set_field_list(["id", "article_title", "resolved_location_name",
+                                      "resolved_news_type_name",  "author_name",
+                                      "published_date", "source_name", "content", ])
     obj_sphinx_result.get_exact_query(pk)
     content = ""
     search = ""
@@ -38,14 +40,12 @@ def get_search(request):
     obj_sphinx_result.set_source_list(facet_source_list)
     facet_newstype_list = request.POST.getlist('newstype[]')
     obj_sphinx_result.set_newstype_list(facet_newstype_list)
-
-    print ("The source ", facet_source_list)
-    print ("The Location", facet_location_list)
-    obj_sphinx_result.set_field_list(["*"])
+    obj_sphinx_result.set_field_list(["id", "content", "article_title", "resolved_news_type_name",
+                                      "resolved_location_name", "source_name", "author_name",
+                                      "published_date", ])
 
     if search:
-        search = normalize_keyword(search)
-        obj_sphinx_result.set_query_string(search)
+        obj_sphinx_result.set_query_string(__normalize_keyword(search))
         obj_sphinx_result.set_snippet_field_list(["content", "article_title", "resolved_news_type_name",
                                                   "resolved_location_name", "source_name", "author_name",
                                                   "published_date"])
@@ -80,7 +80,7 @@ def get_search(request):
         result_dict = obj_sphinx_result.execute(False, True)
         sphinx_details = result_dict['result']
         meta = 0
-        if facet_location_list or facet_source_list:
+        if facet_location_list or facet_source_list or facet_newstype_list:
             meta = result_dict['meta']
 
         face_dict = obj_sphinx_result.get_facet_record()
