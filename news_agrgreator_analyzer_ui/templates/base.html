@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="../../favicon.ico">
 
     <title>News-Aggregator-Analyzer</title>
 
@@ -101,11 +100,28 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 <script src="http://getbootstrap.com/dist/js/bootstrap.min.js"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
 <script>
   $(function(){
     $('form.uniForm').uniform();
   });
+
+    function resetLocationClear()
+    {
+        $('input[name="location[]"]').prop('checked', false);
+    }
+
+    function resetSourceClear()
+    {
+        $('input[name="source[]"]').prop('checked', false);
+    }
+
+    function resetNewsTypeClear()
+    {
+        $('input[name="newstype[]"]').prop('checked', false);
+    }
+</script>
+<script type=text/javascript>
+
 
 </script>
 

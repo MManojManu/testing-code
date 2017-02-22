@@ -15,21 +15,33 @@ class SphinxResult(object):
         self.__main_query_template = "SELECT {fields} FROM {index} {cond} {facets} {options}"
         self.__cond_query_template = " WHERE {where_con} "
         self.__snippet_template = "SNIPPET({field}, '{key_word}', 'LIMIT={limit}') as {field}_snippet"
-        self.__facet_template = "AND {field} IN {options}"
+        self.__facet_location_template = "AND {field} IN {options}"
+        self.__facet_source_template = "AND {field} IN {options}"
+        self.__facet_newstype_template = "AND {field} IN {options}"
         self.__index = index
         self.__search_query = None
         self.__field_list = []
         self.__snippet_field_list = []
-        self.__facet_keyword_list = []
+        self.__facet_location_list = []
+        self.__facet_source_list = []
+        self.__facet_newstype_list = []
         self.__construct_query = None
         self.__options = None
 
     def set_query_string(self, key_word):
         self.__search_query = key_word
 
-    def set_facet_list(self, facet_keyword_list):
+    def set_location_list(self, facet_keyword_list):
         assert isinstance(facet_keyword_list, list)
-        self.__facet_keyword_list.extend(facet_keyword_list)
+        self.__facet_location_list.extend(facet_keyword_list)
+
+    def set_source_list(self, facet_source_list):
+        assert isinstance(facet_source_list, list)
+        self.__facet_source_list.extend(facet_source_list)
+
+    def set_newstype_list(self, newstype_list):
+        assert isinstance(newstype_list, list)
+        self.__facet_newstype_list.extend(newstype_list)
 
     def set_field_list(self, field_list):
         assert isinstance(field_list, list)
@@ -55,14 +67,32 @@ class SphinxResult(object):
         self.__cond_query_template = self.__cond_query_template.format(where_con=where_con)
         self.__snippet_template = ""
 
-    def __get_facet_query(self):
+    def __get_facet_location_query(self):
         facet_query_list = []
-        print ("Query ", self.__facet_keyword_list)
-        for keyword in self.__facet_keyword_list:
+        print ("Query ", self.__facet_location_list)
+        for keyword in self.__facet_location_list:
             facet = keyword
             facet_query_list.append(facet)
         print (facet_query_list)
         return facet_query_list
+
+    def __get_facet_source_query(self):
+        facet_source_query_list = []
+        print ("Query ", self.__facet_source_list)
+        for keyword in self.__facet_source_list:
+            facet = keyword
+            facet_source_query_list.append(facet)
+        print ("The Facet", facet_source_query_list)
+        return facet_source_query_list
+
+    def __get_facet_newstype_query(self):
+        facet_newstype_query_list = []
+        print ("Query ", self.__facet_newstype_list)
+        for keyword in self.__facet_source_list:
+            facet = keyword
+            facet_newstype_query_list.append(facet)
+        print ("The source",facet_newstype_query_list)
+        return facet_newstype_query_list
 
     def __get_match_query(self):
         if self.__search_query is None:
@@ -94,11 +124,24 @@ class SphinxResult(object):
 
         field = "".join(self.__field_list)
         facets = ""
-        if self.__facet_keyword_list:
+        location_facet = ""
+        source_facet = ""
+        if self.__facet_source_list:
+            source_field = "source_name"
+            source = "(" + ','.join("'" + item + "'" for item in self.__facet_source_list) + ")"
+            source_facet = self.__facet_location_template.format(field=source_field, options=source)
+
+        if self.__facet_location_list:
             fields = "resolved_location_name"
-            s = "(" + ','.join("'" + item + "'" for item in self.__facet_keyword_list) + ")"
-            facets = self.__facet_template.format(field=fields, options=s)
-            print ("The facets :", facets)
+            location = "(" + ','.join("'" + item + "'" for item in self.__facet_location_list) + ")"
+            location_facet = self.__facet_location_template.format(field=fields, options=location)
+
+        if source_facet and location_facet:
+            facets = source_facet + location_facet
+        elif source_facet:
+            facets = source_facet
+        else:
+            facets = location_facet
 
         if self.__snippet_field_list:
             snippet = ", ".join(self.__get_snippet_query_list())
@@ -116,7 +159,7 @@ class SphinxResult(object):
         return query
 
     def execute(self, is_ex_match=False, has_meta=True):
-        a = self.__get_facet_query()
+        a = self.__get_facet_location_query()
         obj_sphinx_connector = SphinxConnectorCreator()
         sphinx_con = obj_sphinx_connector.sphinx_connector.get_connection()
         sphinx_cursor = sphinx_con.cursor()
@@ -138,7 +181,8 @@ class SphinxResult(object):
     def get_facet_record(self):
         q = FacetConnectorCreator()
 
-        final_query = "SELECT id FROM newsdb where match('%s') LIMIT 0,10 FACET resolved_location_name;" \
+        final_query = "SELECT id FROM newsdb where match('%s') LIMIT 0,10 FACET resolved_location_name " \
+                      "FACET source_name FACET resolved_news_type_name;" \
                       % self.__search_query
         print("FACET QUERY : %s" % final_query)
         result = q.execute_facet(final_query)
