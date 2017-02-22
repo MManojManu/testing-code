@@ -12,18 +12,24 @@ class SphinxConnectorCreator(object):
 class SphinxResult(object):
 
     def __init__(self, index):
-        self.__main_query_template = "SELECT {fields} FROM {index} {cond} {options}"
+        self.__main_query_template = "SELECT {fields} FROM {index} {cond} {facets} {options}"
         self.__cond_query_template = " WHERE {where_con} "
         self.__snippet_template = "SNIPPET({field}, '{key_word}', 'LIMIT={limit}') as {field}_snippet"
+        self.__facet_template = "AND {field} IN {options}"
         self.__index = index
         self.__search_query = None
         self.__field_list = []
         self.__snippet_field_list = []
+        self.__facet_keyword_list = []
         self.__construct_query = None
         self.__options = None
 
     def set_query_string(self, key_word):
         self.__search_query = key_word
+
+    def set_facet_list(self, facet_keyword_list):
+        assert isinstance(facet_keyword_list, list)
+        self.__facet_keyword_list.extend(facet_keyword_list)
 
     def set_field_list(self, field_list):
         assert isinstance(field_list, list)
@@ -32,9 +38,8 @@ class SphinxResult(object):
     def set_snippet_field_list(self, snippet_list):
         assert isinstance(snippet_list, list)
         self.__snippet_field_list.extend(snippet_list)
-        print (self.__snippet_field_list)
 
-    def __get_snippet_query_list(self, limit=200):
+    def __get_snippet_query_list(self, limit=300):
         if self.__search_query is None:
             raise NotImplementedError("Query should not be empty. "
                                       "call set_query_string to set search keyword first.")
@@ -50,11 +55,22 @@ class SphinxResult(object):
         self.__cond_query_template = self.__cond_query_template.format(where_con=where_con)
         self.__snippet_template = ""
 
+    def __get_facet_query(self):
+        facet_query_list = []
+        print ("Query ", self.__facet_keyword_list)
+        for keyword in self.__facet_keyword_list:
+            facet = keyword
+            facet_query_list.append(facet)
+        print (facet_query_list)
+        return facet_query_list
+
     def __get_match_query(self):
         if self.__search_query is None:
             raise NotImplementedError("Query should not be empty. "
                                       "call set_query_string to set search keyword first.")
+
         where_con = "MATCH('%s')" % self.__search_query
+
         self.__cond_query_template = self.__cond_query_template.format(where_con=where_con)
         return self
 
@@ -77,6 +93,13 @@ class SphinxResult(object):
         print("The options   ", self.__options)
 
         field = "".join(self.__field_list)
+        facets = ""
+        if self.__facet_keyword_list:
+            fields = "resolved_location_name"
+            s = "(" + ','.join("'" + item + "'" for item in self.__facet_keyword_list) + ")"
+            facets = self.__facet_template.format(field=fields, options=s)
+            print ("The facets :", facets)
+
         if self.__snippet_field_list:
             snippet = ", ".join(self.__get_snippet_query_list())
             fields = "{fields}, {snippet}".format(fields=field, snippet=snippet)
@@ -86,13 +109,14 @@ class SphinxResult(object):
         print ("The Fields  ", fields)
 
         query = self.__main_query_template.format(fields=fields, index=self.__index,
-                                                  cond=self.__cond_query_template, options=self.__options)
+                                                  cond=self.__cond_query_template,
+                                                  facets=facets, options=self.__options)
         if has_meta:
             query += "; SHOW META;"
         return query
 
     def execute(self, is_ex_match=False, has_meta=True):
-
+        a = self.__get_facet_query()
         obj_sphinx_connector = SphinxConnectorCreator()
         sphinx_con = obj_sphinx_connector.sphinx_connector.get_connection()
         sphinx_cursor = sphinx_con.cursor()
@@ -113,7 +137,10 @@ class SphinxResult(object):
 
     def get_facet_record(self):
         q = FacetConnectorCreator()
-        final_query = "SELECT id FROM newsdb LIMIT 0,10 FACET resolved_location_name;"
+
+        final_query = "SELECT id FROM newsdb where match('%s') LIMIT 0,10 FACET resolved_location_name;" \
+                      % self.__search_query
+        print("FACET QUERY : %s" % final_query)
         result = q.execute_facet(final_query)
 
         return result
