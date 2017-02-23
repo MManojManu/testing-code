@@ -32,6 +32,7 @@ def detailed_view(request, pk):
 def get_search(request):
     template_name = 'search/form.html'
     obj_sphinx_result = SphinxResult("newsdb")
+    FACET_LIST = ['location', 'news_type', 'source']
     form = SearchForm(request.POST)
     search = request.POST.get('search')
     facet_location_list = request.POST.getlist('location[]')
@@ -43,9 +44,18 @@ def get_search(request):
     obj_sphinx_result.set_field_list(["id", "content", "article_title", "resolved_news_type_name",
                                       "resolved_location_name", "source_name", "author_name",
                                       "published_date", ])
+    obj_sphinx_result.set_query_string(search)
 
+    query_dict = {
+        "search": search,
+        "facet_dict": {
+        "location": facet_location_list,
+        "news_type": facet_newstype_list,
+        "source": facet_source_list, }
+    }
+    print (query_dict)
     if search:
-        obj_sphinx_result.set_query_string(__normalize_keyword(search))
+
         obj_sphinx_result.set_snippet_field_list(["content", "article_title", "resolved_news_type_name",
                                                   "resolved_location_name", "source_name", "author_name",
                                                   "published_date"])
@@ -64,10 +74,10 @@ def get_search(request):
         except EmptyPage:
             sphinx_details = paginator.page(paginator.num_pages)
 
-        face_dict = obj_sphinx_result.get_facet_record()
+        facet_dict = obj_sphinx_result.get_facet_result(query_dict)
         return render(request, template_name,
                       {'form': form, 'sphinx_details': sphinx_details, 'meta': meta, 'parameters': search,
-                       'face_dict': face_dict, 'facet_location_list': facet_location_list,
+                       'face_dict': facet_dict, 'facet_location_list': facet_location_list,
                        'facet_source_list': facet_source_list, 'facet_newstype_list': facet_newstype_list})
     else:
         search = ""
@@ -80,12 +90,13 @@ def get_search(request):
         result_dict = obj_sphinx_result.execute(False, True)
         sphinx_details = result_dict['result']
         meta = 0
-        if facet_location_list or facet_source_list or facet_newstype_list:
+        if facet_location_list or facet_newstype_list or facet_source_list:
             meta = result_dict['meta']
 
-        face_dict = obj_sphinx_result.get_facet_record()
+        facet_dict = obj_sphinx_result.get_facet_result(query_dict)
+
         return render(request, template_name, {'form': form, 'sphinx_details': sphinx_details, 'meta': meta,
-                                               'face_dict': face_dict, 'facet_location_list': facet_location_list,
+                                               'face_dict': facet_dict, 'facet_location_list': facet_location_list,
                                                'facet_source_list': facet_source_list,
                                                'facet_newstype_list': facet_newstype_list})
 

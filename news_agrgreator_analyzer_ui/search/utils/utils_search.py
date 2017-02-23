@@ -1,7 +1,7 @@
 from __future__ import print_function
 from utils_sphinx_connector import Connector
 from facets import FacetConnectorCreator
-
+import copy
 
 class SphinxConnectorCreator(object):
 
@@ -178,14 +178,40 @@ class SphinxResult(object):
         obj_sphinx_connector.sphinx_connector.put_connection(sphinx_con)
         return result_dict
 
-    def get_facet_record(self):
+    def get_facet_result(self, query_dict):
+
+        search_query = query_dict.get("search")
+        facet_dict = query_dict.get("facet_dict")
+        result_dict = {}
+
+        for facet in facet_dict.keys():
+            new_facet_dict = copy.deepcopy(facet_dict)
+            try:
+                del new_facet_dict[facet]
+                print ("\n\n\nThe created Facets ", new_facet_dict)
+                result_dict[facet] = self.get_final_result(search_query, new_facet_dict)
+            except KeyError:
+                pass
+        print ("The dict values got ", result_dict)
+        return result_dict
+
+    def get_final_result(self, search_query, query_dict):
+        FACET_MAP = {
+            "location": "resolved_location_name",
+            "news_type": "resolved_news_type_name",
+            "source": "source_name",
+        }
+
         q = FacetConnectorCreator()
-        final_query = "SELECT id FROM newsdb where match('%s') LIMIT 0,10 FACET resolved_location_name " \
-                      "FACET source_name FACET resolved_news_type_name;" \
-                      % self.__search_query
-        print("\n\nFACET QUERY : %s" % final_query)
-        result = q.execute_facet(final_query)
+        for key in query_dict.keys():
+            final_query = "SELECT id FROM %s WHERE MATCH('%s') FACET  %s " \
+                          % (self.__index, search_query, FACET_MAP[key])
+
+            print("\n\nFACET QUERY : %s" % final_query)
+            result = q.execute_facet(final_query)
+        print ("\n\n\nThe facet result", result)
         return result
+
 
 
 

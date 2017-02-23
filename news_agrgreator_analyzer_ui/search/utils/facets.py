@@ -12,21 +12,12 @@ class FacetConnectorCreator(object):
         sphinx_con = obj_sphinx_connector.sphinx_connector.get_connection()
         sphinx_cursor = sphinx_con.cursor()
 
-        sphinx_cursor.execute(final_query)
         result_dict = {}
-
+        sphinx_cursor.execute(final_query)
         result_dict['facet_id'] = sphinx_cursor.fetchall()
-        print("The Facet ID ", result_dict['facet_id'])
-
         sphinx_cursor.nextset()
-        result_dict['location'] = sphinx_cursor.fetchall()
-        print("The Facet meta Details", result_dict['location'])
-        sphinx_cursor.nextset()
-        result_dict['source'] = sphinx_cursor.fetchall()
-        print("Source Dictionary", result_dict['source'])
-        sphinx_cursor.nextset()
-        result_dict['newstype'] = sphinx_cursor.fetchall()
-        print("NEWSTYPE Dictionary", result_dict['newstype'])
+        result_dict['main'] = sphinx_cursor.fetchall()
+        print("The Facet Main Details", result_dict['main'])
 
         obj_sphinx_connector.sphinx_connector.put_connection(sphinx_con)
-        return result_dict
+        return result_dict['main']
