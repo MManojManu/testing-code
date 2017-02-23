@@ -3,57 +3,24 @@
 {% load bootstrap3 %}
 {% load base_filter %}
 
-<style>
-    .tbl_design {
-        text-transform: uppercase;
-        font-weight: bold;
-        font-family: 'times new roman';
-        font-size: 16px;
-    }
-    .font_design {
-        font-family: 'times new roman';
-        font-size: 18px;
-    }
-</style>
-
+{% with "|" as sp_seperator %}
 {% if sphinx_details %}
 {% for details in sphinx_details %}
-<div style="text-align:left;">
-    <table cellspacing="50px" width="50%">
-        <tr>
-            <td class="tbl_design">Title</td>
-            <td class="font_design">{{details.1}}</td>
-        </tr>
-        <tr>
-            <td class="tbl_design">Newstye</td>
-            <td class="font_design">{{details.3}}</td>
-        </tr>
-        <tr>
-            <td class="tbl_design">Location</td>
-            <td class="font_design">{{details.4}}</td>
-        </tr>
-        <tr>
-            <td class="tbl_design">PublishedDate</td>
-            <td class="font_design">{{details.2}}</td>
-        </tr>
-        <tr>
-            <td class="tbl_design">Source</td>
-            <td class="font_design">{{details.6}}</td>
-        </tr>
-        <tr>
-            <td class="tbl_design">Author</td>
-            <td class="font_design">{{details.7}}</td>
-        </tr>
-        <tr>
-            <td class="tbl_design">Content</td>
-            <td class="font_design">{{details.5}}</td>
-        </tr>
-    </table>
+<div class="div-body">
+    <p class="div-style-title">{{details.1}}</p>
+    <p>{% ifnotequal details.2 'Unknown'%}{{details.2}} {{sp_seperator}} {% endifnotequal %}
+         {% ifnotequal details.3 'Unknown'%} {{details.3}} {{sp_seperator}} {% endifnotequal %}
+         {% ifnotequal details.4 'NA'%} {{details.4}} {{sp_seperator}} {% endifnotequal %}
+        {{details.5}} | {{details.6}}</p>
+    <p>{{details.7}}</p>
 </div>
-<a href="{% url 'search:get_search' %}"  class="btn btn-success">Back</a>
 {% endfor %}
 {% else %}
 <p><b>No records<b></b></p>
 {% endif %}
+{% endwith %}
+<div class="btn-back-align">
+    <a href="{% url 'search:get_search' %}" class="btn btn-success ">Back</a>
+</div>
 {% endblock %}
 

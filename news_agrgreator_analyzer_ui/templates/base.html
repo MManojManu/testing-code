@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="../../favicon.ico">
 
     <title>News-Aggregator-Analyzer</title>
 
@@ -26,6 +25,7 @@
     <![endif]-->
     <style>
     body {
+      background-color:   #d6eaf8   ;
 	  padding-top: 50px;
 	}
 	.starter-template {
@@ -38,7 +38,54 @@
 	.navbar-header {
 	  text-align: center;
 	}
+	.news-details{
+	    text-align: left;
+	 }
+	 .news-details-content {
+	    text-align: justify;
+	 }
+	 .news-details-title {
+        text-transform: capitalize;
+	 }
+	 ol, ul {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    .search-result {
+        text-transform: capitalize;
+        font-family: Monotype Corsiva;
+    }
+    .search-result-found {
+        font-weight: bold;
+    }
+    .pagination {
+        display: inline-block;
+        padding-left: 350px;
+        margin: 20px 0;
+        border-radius: 4px;
+    }
+    .facet-align{
+        text-align: left;
+    }
+    .no-result-found {
+        text-align: left;
+        color: red;
+        font-size:18px;
+    }
+    .div-style-title {
+        text-transform: capitalize;
+        font-weight: bold;
+        font-size: 18px;
 
+    }
+    .div-body {
+        font-family: 'times new roman';
+        font-size: 16px;
+        text-align: justify
+    }
+    .btn-back-align {
+        text-align: left
+    }
     </style>
 </head>
 
@@ -53,6 +100,7 @@
             </div>
         </div>
     </nav>
+
     <div class="container-fluid">
         <div class="starter-template">
             {% block container %} test {% endblock %}
@@ -66,11 +114,28 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 <script src="http://getbootstrap.com/dist/js/bootstrap.min.js"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
 <script>
   $(function(){
     $('form.uniForm').uniform();
   });
+
+    function resetLocationClear()
+    {
+        $('input[name="location[]"]').prop('checked', false);
+    }
+
+    function resetSourceClear()
+    {
+        $('input[name="source[]"]').prop('checked', false);
+    }
+
+    function resetNewsTypeClear()
+    {
+        $('input[name="newstype[]"]').prop('checked', false);
+    }
+</script>
+<script type=text/javascript>
+
 
 </script>
 
