@@ -51,9 +51,9 @@ def get_search(request):
         "facet_dict": {
         "location": facet_location_list,
         "news_type": facet_newstype_list,
-        "source": facet_source_list, }
+        "source": facet_source_list}
     }
-    print (query_dict)
+
     if search:
 
         obj_sphinx_result.set_snippet_field_list(["content", "article_title", "resolved_news_type_name",
@@ -99,5 +99,4 @@ def get_search(request):
                                                'face_dict': facet_dict, 'facet_location_list': facet_location_list,
                                                'facet_source_list': facet_source_list,
                                                'facet_newstype_list': facet_newstype_list})
-
 

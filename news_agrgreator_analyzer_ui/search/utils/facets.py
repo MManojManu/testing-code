@@ -17,7 +17,6 @@ class FacetConnectorCreator(object):
         result_dict['facet_id'] = sphinx_cursor.fetchall()
         sphinx_cursor.nextset()
         result_dict['main'] = sphinx_cursor.fetchall()
-        print("The Facet Main Details", result_dict['main'])
 
         obj_sphinx_connector.sphinx_connector.put_connection(sphinx_con)
         return result_dict['main']

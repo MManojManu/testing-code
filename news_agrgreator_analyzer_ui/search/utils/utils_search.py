@@ -3,6 +3,7 @@ from utils_sphinx_connector import Connector
 from facets import FacetConnectorCreator
 import copy
 
+
 class SphinxConnectorCreator(object):
 
     def __init__(self):
@@ -169,7 +170,6 @@ class SphinxResult(object):
         self.__get_match_query()
         result_dict = {}
         query = self.__get_final_query(is_ex_match, has_meta)
-        print("The FINAL query : ", query)
         sphinx_cursor.execute(query)
         result_dict['result'] = sphinx_cursor.fetchall()
         if has_meta:
@@ -185,14 +185,15 @@ class SphinxResult(object):
         result_dict = {}
 
         for facet in facet_dict.keys():
+            print (facet)
             new_facet_dict = copy.deepcopy(facet_dict)
             try:
                 del new_facet_dict[facet]
-                print ("\n\n\nThe created Facets ", new_facet_dict)
+
                 result_dict[facet] = self.get_final_result(search_query, new_facet_dict)
             except KeyError:
                 pass
-        print ("The dict values got ", result_dict)
+        print ("\n\n\n**************\nThe new_facet_dict values got ", result_dict)
         return result_dict
 
     def get_final_result(self, search_query, query_dict):
@@ -203,13 +204,16 @@ class SphinxResult(object):
         }
 
         q = FacetConnectorCreator()
+        i = 0
         for key in query_dict.keys():
+            print ("\n\nresult ",key)
             final_query = "SELECT id FROM %s WHERE MATCH('%s') FACET  %s " \
                           % (self.__index, search_query, FACET_MAP[key])
 
-            print("\n\nFACET QUERY : %s" % final_query)
+            print("\n\n********************\n%s FACET QUERY : %s" % (i, final_query))
             result = q.execute_facet(final_query)
-        print ("\n\n\nThe facet result", result)
+            i += 1
+        print ("\n\n\n**************\nThe facet result", result)
         return result
 
 
