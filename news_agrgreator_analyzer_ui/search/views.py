@@ -45,6 +45,10 @@ def get_search(request):
                                       "resolved_location_name", "source_name", "author_name",
                                       "published_date", ])
     obj_sphinx_result.set_query_string(search)
+    if search:
+        search = __normalize_keyword(search)
+    else:
+        search = ""
 
     query_dict = {
         "search": search,
@@ -75,13 +79,16 @@ def get_search(request):
             sphinx_details = paginator.page(paginator.num_pages)
 
         facet_dict = obj_sphinx_result.get_facet_result(query_dict)
+
         return render(request, template_name,
-                      {'form': form, 'sphinx_details': sphinx_details, 'meta': meta, 'parameters': search,
-                       'face_dict': facet_dict, 'facet_location_list': facet_location_list,
-                       'facet_source_list': facet_source_list, 'facet_newstype_list': facet_newstype_list})
+                      {'form': form, 'sphinx_details': sphinx_details,
+                       'meta': meta, 'parameters': search,
+                       'face_dict': facet_dict,
+                       'facet_location_list': facet_location_list,
+                       'facet_source_list': facet_source_list,
+                       'facet_newstype_list': facet_newstype_list})
     else:
         search = ""
-
         obj_sphinx_result.set_query_string(search)
         obj_sphinx_result.set_snippet_field_list(["content", "article_title", "resolved_news_type_name",
                                                   "resolved_location_name", "source_name", "author_name",
@@ -95,8 +102,10 @@ def get_search(request):
 
         facet_dict = obj_sphinx_result.get_facet_result(query_dict)
 
-        return render(request, template_name, {'form': form, 'sphinx_details': sphinx_details, 'meta': meta,
-                                               'face_dict': facet_dict, 'facet_location_list': facet_location_list,
+        return render(request, template_name, {'form': form, 'sphinx_details': sphinx_details,
+                                               'meta': meta,
+                                               'face_dict': facet_dict,
+                                               'facet_location_list': facet_location_list,
                                                'facet_source_list': facet_source_list,
                                                'facet_newstype_list': facet_newstype_list})
 
