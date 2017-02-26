@@ -1,5 +1,6 @@
 from __future__ import print_function
 from utils_sphinx_connector import Connector
+from utils_constants import (FACET_MAP, FORMATOR)
 from utils_facets import FacetConnectorCreator
 import copy
 
@@ -186,31 +187,19 @@ class SphinxResult(object):
         facet_dict = query_dict.get("facet_dict")
         result_dict = {}
 
-        FACET_MAP = {
-            "location": "resolved_location_name",
-            "news_type": "resolved_news_type_name",
-            "source": "source_name",
-        }
-
         for facet in facet_dict.keys():
             print (facet)
             new_facet_dict = copy.deepcopy(facet_dict)
             try:
                 del new_facet_dict[facet]
-                # print("new_facet_dict: %s for %s" % (new_facet_dict, facet))
-                result_dict[facet] = self.get_final_result(search_query, new_facet_dict, FACET_MAP[facet])
+                result_dict[facet] = self.__get_final_result(search_query, new_facet_dict, FACET_MAP[facet])
             except KeyError:
                 pass
 
         return result_dict
 
-    def get_final_result(self, search_query, query_dict, value):
-        FACET_MAP = {
-            "location": "resolved_location_name",
-            "news_type": "resolved_news_type_name",
-            "source": "source_name",
-        }
-        formater = lambda x: "'" + x + "'"
+    def __get_final_result(self, search_query, query_dict, value):
+
         q = FacetConnectorCreator()
         fields = "id"
         match = "MATCH('%s')" % search_query
@@ -219,7 +208,7 @@ class SphinxResult(object):
         for key in query_dict.keys():
             if not query_dict[key]:
                 continue
-            values = ", ".join(map(formater, query_dict[key]))
+            values = ", ".join(map(FORMATOR, query_dict[key]))
 
             field_list = " %s in (%s) " % (FACET_MAP[key], values)
             final_query_list.append(field_list)
@@ -228,15 +217,10 @@ class SphinxResult(object):
 
         where_con = "WHERE " + match
         if final:
-            where_con = where_con + " AND " +final
+            where_con = where_con + " AND " + final
 
         final_query = self.__facet_query_template.format(fields=fields, index=self.__index, cond=where_con,
                                                          facet_fields=value)
 
         print ("\nThe final Query %s " % final_query)
         return q.execute_facet(final_query)
-
-
-
-
-

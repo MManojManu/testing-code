@@ -46,11 +46,9 @@
 	 }
 	 .news-details-title {
         text-transform: capitalize;
-	 }
-	 ol, ul {
-        margin-top: 10px;
-        margin-bottom: 10px;
+        margin-top: 15px;
     }
+
     .search-result {
         text-transform: capitalize;
         font-family: Monotype Corsiva;
@@ -86,6 +84,16 @@
     .btn-back-align {
         text-align: left
     }
+     .copyright { min-height:40px; background-color:#000000;}
+ .copyright p { text-align:left; color:#FFF; padding:10px 0; margin-bottom:0px;}
+ .heading7 { font-size:21px; font-weight:700; color:#d9d6d6; margin-bottom:22px;}
+ .post p { font-size:12px; color:#FFF; line-height:20px;}
+ .post p span { display:block; color:#8f8f8f;}
+ .bottom_ul { list-style-type:none; float:right; margin-bottom:0px;}
+ .bottom_ul li { float:left; line-height:40px;}
+ .bottom_ul li:after { content:"/"; color:#FFF; margin-right:8px; margin-left:8px;}
+ .bottom_ul li a { color:#FFF;  font-size:12px;}
+
     </style>
 </head>
 
@@ -114,25 +122,31 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 <script src="http://getbootstrap.com/dist/js/bootstrap.min.js"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+<div class="copyright">
+    <div class="container">
+        <div class="col-md-6">
+            <p>© 2017 - All Rights with MVA</p>
+        </div>
+        <div class="col-md-6">
+            <ul class="bottom_ul">
+                <li><a href="#">About us</a></li>
+                <li><a href="#">Contact us</a></li>
+
+            </ul>
+        </div>
+    </div>
+</div>
 <script>
   $(function(){
     $('form.uniForm').uniform();
   });
-
-    function resetLocationClear()
+    function resetFields()
     {
         $('input[name="location[]"]').prop('checked', false);
-    }
-
-    function resetSourceClear()
-    {
         $('input[name="source[]"]').prop('checked', false);
-    }
-
-    function resetNewsTypeClear()
-    {
         $('input[name="newstype[]"]').prop('checked', false);
     }
+
 </script>
 <script type=text/javascript>
 
