@@ -3,13 +3,13 @@
 {% load bootstrap3 %}
 {% load paginator %}
 
-<form method="POST" action="">
+<form method="GET" action="">
     <div class="col-sm-10">{% csrf_token %}
         {% bootstrap_form form layout='inline' %}
         {% with "|" as sp_seperator %}
 
         {% if sphinx_details %}
-        <div class="col-sm-10">
+        <div class="col-sm-12">
             {% with "Search results found " as search %}
             <div class="col-sm-10 news-details search-result">
                 {% ifnotequal value 0%} {{search}} <span class="search-result-found">
@@ -20,7 +20,8 @@
             <div class="clearfix"></div>
 
             {% for sphinx_detail in sphinx_details %}
-            <div  style="text-align:left;" class="news-details-title"> <a href="{% url 'search:get_detailed_view' sphinx_detail.0 %}">
+            <div class="news-details-title">
+                <a href="{% url 'search:get_detailed_view' sphinx_detail.0 %}">
                     {% autoescape off %} {{sphinx_detail.9}} {% endautoescape %} </a></div>
             <div class="news-details-content">
                 <span>
@@ -47,16 +48,17 @@
         </div>
 
         {% else %}
-        <span class="no-result-found"> No records</span>
+        <span class="no-result-found"> No records! Refine the keyword and search again..</span>
         {% endif %}
         {% endwith %}
     </div>
+
     <div class="col-sm-2 facet-align">
+
         {% buttons submit='Search' layout='inline'%}{% endbuttons %}
         <span> <button class="btn" type="button" onclick="resetFields()">Reset</button></span>
-        <fieldset style=" border: 1px solid lightgray;">
+        <fieldset>
             <legend>Location</legend>
-
             <div class="control-group">
                 {% for key, value in face_dict.location %}
                 <label class="checkbox">
@@ -70,14 +72,10 @@
                 </label>
                 {% endfor %}
             </div>
-
-
-        </fieldset>
-
         </fieldset>
 
         <fieldset>
-            <legend>News Type</legend>
+            <legend>{% ifnotequal face_dict.news_type 0 %} News Type {%endifnotequal %}</legend>
             <div class="control-group">
                 {% for key, value in face_dict.news_type %}
                 <label class="checkbox">
@@ -87,7 +85,6 @@
                            {% if facet_source in key %}checked {% endif %}
                            {% endfor %}/>&nbsp;
                     {{key}}({{value}})
-
                 </label>
                 {% endfor %}
             </div>
@@ -95,7 +92,6 @@
 
         <fieldset>
             <legend>Source</legend>
-
             <div class="control-group">
                 {% for key, value in face_dict.source %}
                 <label class="checkbox">
@@ -105,17 +101,16 @@
                            {% if facet_source in key %}checked {% endif %}
                            {% endfor %}/>&nbsp;
                     {{key}}({{value}})
-
                 </label>
                 {% endfor %}
             </div>
-
+        </fieldset>
     </div>
+
 </form>
-<div class="clearfix"></div>
 
 <div class="clearfix"></div>
-
+<div class="clearfix"></div>
 
 <div id="output_box" class="col-sm-10">
     {% if sphinx_details.has_other_pages %}
@@ -137,7 +132,8 @@
         {% endfor %}
         {% if sphinx_details.has_next %}
         <li>
-            <a href="?page={{ sphinx_details.next_page_number }}&{%if parameters %}search={{parameters}}{% endif %}">&raquo;</a>
+            <a href="?page={{ sphinx_details.next_page_number }}&
+                {%if parameters %}search={{parameters}}{% endif %}">&raquo;</a>
         </li>
         {% else %}
         <li class="disabled"><span>&raquo;</span></li>

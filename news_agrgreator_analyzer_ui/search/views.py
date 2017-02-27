@@ -32,13 +32,13 @@ def detailed_view(request, pk):
 def get_search(request):
     template_name = 'search/form.html'
     obj_sphinx_result = SphinxResult("newsdb")
-    form = SearchForm(request.POST)
-    search = request.POST.get('search')
-    facet_location_list = request.POST.getlist('location[]')
+    form = SearchForm(request.GET)
+    search = request.GET.get('search')
+    facet_location_list = request.GET.getlist('location[]')
     obj_sphinx_result.set_location_list(facet_location_list)
-    facet_source_list = request.POST.getlist('source[]')
+    facet_source_list = request.GET.getlist('source[]')
     obj_sphinx_result.set_source_list(facet_source_list)
-    facet_newstype_list = request.POST.getlist('newstype[]')
+    facet_newstype_list = request.GET.getlist('newstype[]')
     obj_sphinx_result.set_newstype_list(facet_newstype_list)
     obj_sphinx_result.set_field_list(["id", "content", "article_title", "resolved_news_type_name",
                                       "resolved_location_name", "source_name", "author_name",
@@ -63,7 +63,7 @@ def get_search(request):
         obj_sphinx_result.set_snippet_field_list(["content", "article_title", "resolved_news_type_name",
                                                   "resolved_location_name", "source_name", "author_name",
                                                   "published_date"])
-        obj_sphinx_result.set_options("WEIGHT()", limit=40, order="DESC")
+        obj_sphinx_result.set_options("WEIGHT()", limit=100, order="DESC")
 
         result_dict = obj_sphinx_result.execute(False, True)
         sphinx_details = result_dict['result']
@@ -93,7 +93,7 @@ def get_search(request):
         obj_sphinx_result.set_snippet_field_list(["content", "article_title", "resolved_news_type_name",
                                                   "resolved_location_name", "source_name", "author_name",
                                                   "published_date", ])
-        obj_sphinx_result.set_options("published_date", limit=10, order="DESC")
+        obj_sphinx_result.set_options("published_date", limit=20, order="DESC")
         result_dict = obj_sphinx_result.execute(False, True)
         sphinx_details = result_dict['result']
         meta = 0
@@ -111,4 +111,21 @@ def get_search(request):
                                                'facet_location_list': facet_location_list,
                                                'facet_source_list': facet_source_list,
                                                'facet_newstype_list': facet_newstype_list})
+
+
+def privacy(request):
+    template_name = 'privacy.html'
+    return render(request, template_name)
+
+
+def about_us(request):
+    template_name = 'about_us.html'
+    return render(request, template_name)
+
+
+def contact_us(request):
+    template_name = 'contact_us.html'
+    return render(request, template_name)
+
+
 

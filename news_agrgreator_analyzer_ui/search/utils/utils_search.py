@@ -16,7 +16,7 @@ class SphinxResult(object):
     def __init__(self, index):
         self.__main_query_template = "SELECT {fields} FROM {index} {cond} {facets} {options}"
         self.__cond_query_template = " WHERE {where_con} "
-        self.__snippet_template = "SNIPPET({field}, '{key_word}', 'LIMIT={limit}') as {field}_snippet"
+        self.__snippet_template = "SNIPPET({field}, '{key_word}',  'LIMIT={limit}') as {field}_snippet"
         self.__facet_location_template = "AND {field} IN {options} "
         self.__facet_source_template = "AND {field} IN {options} "
         self.__facet_newstype_template = "AND {field} IN {options}"
@@ -164,6 +164,7 @@ class SphinxResult(object):
                                                   facets=self.__get_facet_query(), options=self.__options)
         if has_meta:
             query += "; SHOW META;"
+
         return query
 
     def execute(self, is_ex_match=False, has_meta=True):
@@ -222,5 +223,4 @@ class SphinxResult(object):
         final_query = self.__facet_query_template.format(fields=fields, index=self.__index, cond=where_con,
                                                          facet_fields=value)
 
-        print ("\nThe final Query %s " % final_query)
         return q.execute_facet(final_query)
