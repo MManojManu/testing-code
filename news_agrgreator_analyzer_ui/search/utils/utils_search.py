@@ -20,8 +20,9 @@ class SphinxResult(object):
         self.__facet_location_template = "AND {field} IN {options} "
         self.__facet_source_template = "AND {field} IN {options} "
         self.__facet_newstype_template = "AND {field} IN {options}"
-        self.__facet_query_template = "SELECT {fields} FROM {index} {cond} FACET {facet_fields}"
+        self.__facet_query_template = "SELECT {fields} FROM {index} {cond} FACET {facet_fields} {order}"
         self.__facet_cond_query_template = " WHERE {where_con} "
+        self.__facet_order = None
         self.__index = index
         self.__search_query = None
         self.__field_list = []
@@ -189,20 +190,20 @@ class SphinxResult(object):
         result_dict = {}
 
         for facet in facet_dict.keys():
-            print (facet)
             new_facet_dict = copy.deepcopy(facet_dict)
             try:
                 del new_facet_dict[facet]
                 result_dict[facet] = self.__get_final_result(search_query, new_facet_dict, FACET_MAP[facet])
             except KeyError:
                 pass
-
+        print (result_dict['location'])
         return result_dict
 
     def __get_final_result(self, search_query, query_dict, value):
 
         q = FacetConnectorCreator()
-        fields = "id"
+        self.__facet_order = " ORDER BY COUNT(*) DESC"
+        fields = "id, COUNT(*) "
         match = "MATCH('%s')" % search_query
         final_query_list = []
 
@@ -221,6 +222,6 @@ class SphinxResult(object):
             where_con = where_con + " AND " + final
 
         final_query = self.__facet_query_template.format(fields=fields, index=self.__index, cond=where_con,
-                                                         facet_fields=value)
+                                                         facet_fields=value, order=self.__facet_order)
 
         return q.execute_facet(final_query)

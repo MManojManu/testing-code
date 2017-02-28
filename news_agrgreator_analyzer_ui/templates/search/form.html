@@ -4,19 +4,25 @@
 {% load paginator %}
 
 <form method="GET" action="">
-    <div class="col-sm-10">{% csrf_token %}
+    <div class="col-sm-10">
+        {% csrf_token %}
         {% bootstrap_form form layout='inline' %}
         {% with "|" as sp_seperator %}
 
         {% if sphinx_details %}
         <div class="col-sm-12">
+
             {% with "Search results found " as search %}
+            {% with "Enter search keyword to view more" as errors %}
             <div class="col-sm-10 news-details search-result">
                 {% ifnotequal value 0%} {{search}} <span class="search-result-found">
                 {{meta.1.1}} </span> in <span class="search-result-found"> {{meta.2.1}} </span>
                 seconds{% endifnotequal %}
+
             </div>
             {% endwith %}
+            {% endwith %}
+
             <div class="clearfix"></div>
 
             {% for sphinx_detail in sphinx_details %}
@@ -108,37 +114,46 @@
     </div>
 
 </form>
+<div>
+    {% with "Enter search keyword to view more" as errors %}
+            <div class="col-sm-10 news-details search-result">
+                <span style="color:red;"><center>{% ifnotequal error 0%} {{errors}}{% endifnotequal %}</span>
+            </div>
+    {% endwith %}
 
-<div class="clearfix"></div>
-<div class="clearfix"></div>
-
-<div id="output_box" class="col-sm-10">
-    {% if sphinx_details.has_other_pages %}
-    <ul class="pagination">
-        {% if sphinx_details.has_previous %}
-        <li>
-            <a href="?page={{ sphinx_details.previous_page_number }}
-            &{%if parameters %}search={{parameters}}{% endif %}">&laquo;</a>
-        </li>
-        {% else %}
-        <li class="disabled"><span>&laquo;</span></li>
-        {% endif %}
-        {% for i in sphinx_details.paginator.page_range %}
-        {% if sphinx_details.number == i %}
-        <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
-        {% else %}
-        <li><a href="?page={{ i }}&{%if parameters %}search={{parameters}}{% endif %}">{{ i }}</a></li>
-        {% endif %}
-        {% endfor %}
-        {% if sphinx_details.has_next %}
-        <li>
-            <a href="?page={{ sphinx_details.next_page_number }}&
-                {%if parameters %}search={{parameters}}{% endif %}">&raquo;</a>
-        </li>
-        {% else %}
-        <li class="disabled"><span>&raquo;</span></li>
-        {% endif %}
-    </ul>
-    {% endif %}
 </div>
+<div class="clearfix"></div>
+<div class="clearfix"></div>
+
+    <div id="output_box" class="col-sm-10">
+        {% if sphinx_details.has_other_pages %}
+        <ul class="pagination">
+            {% if sphinx_details.has_previous %}
+            <li>
+                <a href="?page={{ sphinx_details.previous_page_number }}
+                &{%if parameters %}search={{parameters}}{% endif %}">&laquo;</a>
+            </li>
+            {% else %}
+            <li class="disabled"><span>&laquo;</span></li>
+            {% endif %}
+            {% for i in sphinx_details.paginator.page_range %}
+            {% if sphinx_details.number == i %}
+            <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+            {% else %}
+            <li><a href="?page={{ i }}&{%if parameters %}search={{parameters}}{% endif %}">{{ i }}</a></li>
+            {% endif %}
+            {% endfor %}
+            {% if sphinx_details.has_next %}
+            <li>
+                <a href="?page={{ sphinx_details.next_page_number }}&
+                    {%if parameters %}search={{parameters}}{% endif %}">&raquo;</a>
+            </li>
+            {% else %}
+            <li class="disabled"><span>&raquo;</span></li>
+            {% endif %}
+        </ul>
+        {% endif %}
+    </div>
+
+
 {% endblock %}

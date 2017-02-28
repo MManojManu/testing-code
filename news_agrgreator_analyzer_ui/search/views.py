@@ -63,15 +63,15 @@ def get_search(request):
         obj_sphinx_result.set_snippet_field_list(["content", "article_title", "resolved_news_type_name",
                                                   "resolved_location_name", "source_name", "author_name",
                                                   "published_date"])
-        obj_sphinx_result.set_options("WEIGHT()", limit=100, order="DESC")
+        obj_sphinx_result.set_options("WEIGHT()", limit=200, order="DESC")
 
         result_dict = obj_sphinx_result.execute(False, True)
         sphinx_details = result_dict['result']
 
+        meta = result_dict['meta']
 
         page = request.GET.get('page', 1)
 
-        meta = result_dict['meta']
         paginator = Paginator(sphinx_details, 20)
         try:
             sphinx_details = paginator.page(page)
@@ -81,25 +81,37 @@ def get_search(request):
             sphinx_details = paginator.page(paginator.num_pages)
 
         facet_dict = obj_sphinx_result.get_facet_result(query_dict)
-        print (facet_dict['location'])
 
-        for list_value in facet_location_list:
-            print (list_value)
-            print (facet_dict['location'])
-            if facet_dict['location']:
-                if list_value in facet_dict['location']:
-                    facet_dict['location'] = {list_value : '0'}
-                    print ("S")
-            else:
+        """The any changes to be made done here"""
 
-                facet_dict['location'] = {list_value : '0'}
+        if not facet_dict['location']:
+            for facet_value in facet_location_list:
+                if facet_value not in facet_dict['location']:
+                    temp_location_dict = {facet_value: 0}
+                    temp_dict_location_value = temp_location_dict.items()
+                    facet_dict['location'] = temp_dict_location_value
 
-        print ("tf", facet_dict['location'])
+        if not facet_dict['news_type']:
+            for facet_value in facet_newstype_list:
+                if facet_value not in facet_dict['news_type']:
+                    temp_newstype_dict = {facet_value: 0}
+                    temp_dict_newstype_value = temp_newstype_dict.items()
+                    facet_dict['news_type'] = temp_dict_newstype_value
 
+        if not facet_dict['source']:
+            for facet_value in facet_source_list:
+                if facet_value not in facet_dict['source']:
+                    temp_source_dict = {facet_value: 0}
+                    temp_dict_source_value = temp_source_dict.items()
+                    facet_dict['source'] = temp_dict_source_value
 
+        """End of the change made"""
+
+        error = 0
         return render(request, template_name,
                       {'form': form, 'sphinx_details': sphinx_details,
                        'meta': meta, 'parameters': search,
+                       'error': error,
                        'face_dict': facet_dict,
                        'facet_location_list': facet_location_list,
                        'facet_source_list': facet_source_list,
@@ -111,30 +123,49 @@ def get_search(request):
                                                   "resolved_location_name", "source_name", "author_name",
                                                   "published_date", ])
         obj_sphinx_result.set_options("published_date", limit=20, order="DESC")
+
         result_dict = obj_sphinx_result.execute(False, True)
         sphinx_details = result_dict['result']
         meta = 0
         value = 0
+        error = 0
         if facet_location_list or facet_newstype_list or facet_source_list:
             value = 1
+            error = 1
             meta = result_dict['meta']
 
         facet_dict = obj_sphinx_result.get_facet_result(query_dict)
 
-        for list_value in facet_location_list:
-            print (list_value)
-            print (facet_dict['location'])
-            if facet_dict['location']:
-                if list_value not in facet_dict['location']:
-                    facet_dict['ram'] = {'tamil': 0}
-                    print ("S")
-            else:
-                facet_dict['ram'] = {'tamilnadu': '0'}
-        facet_dict['location'].append(list_value, 0)
-        print ("update dict is ", facet_dict['location'])
+        """The any changes to be made done here"""
+
+        if not facet_dict['location']:
+            for facet_value in facet_location_list:
+                if facet_value not in facet_dict['location']:
+                    temp_location_dict = {facet_value: 0}
+                    temp_dict_location_value = temp_location_dict.items()
+                    facet_dict['location'] = temp_dict_location_value
+
+        if not facet_dict['news_type']:
+            for facet_value in facet_newstype_list:
+                if facet_value not in facet_dict['news_type']:
+                    temp_newstype_dict = {facet_value: 0}
+                    temp_dict_newstype_value = temp_newstype_dict.items()
+                    facet_dict['news_type'] = temp_dict_newstype_value
+
+        if not facet_dict['source']:
+            for facet_value in facet_source_list:
+                if facet_value not in facet_dict['source']:
+                    temp_source_dict = {facet_value: 0}
+                    temp_dict_source_value = temp_source_dict.items()
+                    facet_dict['source'] = temp_dict_source_value
+
+        """End of the change made"""
+
+
 
         return render(request, template_name, {'form': form, 'sphinx_details': sphinx_details,
                                                'meta': meta,
+                                               'error': error,
                                                'value': value,
                                                'face_dict': facet_dict,
                                                'facet_location_list': facet_location_list,
