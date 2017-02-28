@@ -67,6 +67,8 @@ def get_search(request):
 
         result_dict = obj_sphinx_result.execute(False, True)
         sphinx_details = result_dict['result']
+
+
         page = request.GET.get('page', 1)
 
         meta = result_dict['meta']
@@ -79,6 +81,21 @@ def get_search(request):
             sphinx_details = paginator.page(paginator.num_pages)
 
         facet_dict = obj_sphinx_result.get_facet_result(query_dict)
+        print (facet_dict['location'])
+
+        for list_value in facet_location_list:
+            print (list_value)
+            print (facet_dict['location'])
+            if facet_dict['location']:
+                if list_value in facet_dict['location']:
+                    facet_dict['location'] = {list_value : '0'}
+                    print ("S")
+            else:
+
+                facet_dict['location'] = {list_value : '0'}
+
+        print ("tf", facet_dict['location'])
+
 
         return render(request, template_name,
                       {'form': form, 'sphinx_details': sphinx_details,
@@ -103,6 +120,18 @@ def get_search(request):
             meta = result_dict['meta']
 
         facet_dict = obj_sphinx_result.get_facet_result(query_dict)
+
+        for list_value in facet_location_list:
+            print (list_value)
+            print (facet_dict['location'])
+            if facet_dict['location']:
+                if list_value not in facet_dict['location']:
+                    facet_dict['ram'] = {'tamil': 0}
+                    print ("S")
+            else:
+                facet_dict['ram'] = {'tamilnadu': '0'}
+        facet_dict['location'].append(list_value, 0)
+        print ("update dict is ", facet_dict['location'])
 
         return render(request, template_name, {'form': form, 'sphinx_details': sphinx_details,
                                                'meta': meta,
